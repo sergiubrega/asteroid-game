@@ -11,6 +11,7 @@ wheels/
 
 # Logs
 game_state.jsonl
+game_events.jsonl
 
 # macOS
 .DS_Store
