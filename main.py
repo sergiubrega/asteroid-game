@@ -1,6 +1,6 @@
 import sys
 import pygame
-from constants import SCREEN_WIDTH, SCREEN_HEIGHT
+from constants import SCREEN_WIDTH, SCREEN_HEIGHT, ASTEROID_MIN_RADIUS
 from logger import log_state, log_event
 from player import Player
 from asteroid import Asteroid
@@ -27,6 +27,8 @@ def main():
     Shot.containers = (shots, updatable, drawable)
     asteroid_field = AsteroidField()
     player = Player(x, y)
+    score = 0
+    font = pygame.font.Font(None, 36)
     while True:
         log_state()
         for event in pygame.event.get():
@@ -44,10 +46,18 @@ def main():
             for shot in shots:
                 if shot.collides_with(asteroid):
                     log_event("asteroid_shot")
+                    if asteroid.radius == ASTEROID_MIN_RADIUS * 3:
+                        score += 1
+                    elif asteroid.radius == ASTEROID_MIN_RADIUS * 2:
+                        score += 2
+                    else:
+                        score += 3
                     asteroid.split()
                     shot.kill()
         
         screen.fill("black")
+        score_text = font.render(f"Score: {score}", True, "white")
+        screen.blit(score_text, (10, 10))
 
         for thing in drawable:
             thing.draw(screen)
