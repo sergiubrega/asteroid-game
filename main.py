@@ -28,6 +28,7 @@ def main():
     asteroid_field = AsteroidField()
     player = Player(x, y)
     score = 0
+    lives = 3
     font = pygame.font.Font(None, 36)
     while True:
         log_state()
@@ -37,10 +38,15 @@ def main():
         
         updatable.update(dt)
         for thing in asteroids:
-            if thing.collides_with(player):
+            if thing.collides_with(player) and player.invulnerable_timer <= 0:
                 log_event("player_hit")
-                print("Game over!")
-                sys.exit()
+                lives -= 1
+                if lives > 0:
+                    # respawn player at center
+                    player.respawn(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
+                else:
+                    print("Game over! Final score:", score)
+                    sys.exit()
         
         for asteroid in asteroids:
             for shot in shots:
@@ -57,7 +63,9 @@ def main():
         
         screen.fill("black")
         score_text = font.render(f"Score: {score}", True, "white")
+        lives_text = font.render(f"Lives: {lives}", True, "white")
         screen.blit(score_text, (10, 10))
+        screen.blit(lives_text, (SCREEN_WIDTH - 120, 10))  # top-right
 
         for thing in drawable:
             thing.draw(screen)
