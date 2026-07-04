@@ -56,7 +56,7 @@ logger.py         → JSONL state/events (game_state.jsonl, game_events.jsonl)
 - **Split physics**: 20–50° divergence, 1.2× speed boost — classic "ricochet" feel
 - **Shoot cooldown**: 0.3s — spam prevented, rhythm rewarded
 - **Collision**: pixel-perfect circle-vs-circle (distance ≤ r₁ + r₂)
-- **Wrap-around**: none — rocks spawn off-screen, drift through, exit opposite side
+- **Wrap-around**: objects wrap at screen edges — fly off one side, appear on the other (classic Asteroids)
 
 ---
 
