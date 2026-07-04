@@ -1,4 +1,5 @@
 import sys
+import random
 import pygame
 from constants import SCREEN_WIDTH, SCREEN_HEIGHT, ASTEROID_MIN_RADIUS
 from logger import log_state, log_event
@@ -6,6 +7,7 @@ from player import Player
 from asteroid import Asteroid
 from asteroidfield import AsteroidField
 from shot import Shot
+from particle import Particle, spawn_explosion
 
 def main():
     print(f"Starting Asteroids with pygame version: {pygame.version.ver}")
@@ -25,11 +27,17 @@ def main():
     Asteroid.containers = (asteroids, updatable, drawable)
     AsteroidField.containers = (updatable)
     Shot.containers = (shots, updatable, drawable)
+    Particle.containers = (updatable, drawable)
     asteroid_field = AsteroidField()
     player = Player(x, y)
     score = 0
     lives = 3
     font = pygame.font.Font(None, 36)
+    # Screen shake
+    shake_timer = 0.0
+    shake_intensity = 0
+    # Offscreen surface for screen shake
+    game_surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
     while True:
         log_state()
         for event in pygame.event.get():
@@ -54,21 +62,43 @@ def main():
                     log_event("asteroid_shot")
                     if asteroid.radius == ASTEROID_MIN_RADIUS * 3:
                         score += 1
+                        spawn_explosion(asteroid.position.x, asteroid.position.y, (255, 100, 50), 16)
                     elif asteroid.radius == ASTEROID_MIN_RADIUS * 2:
                         score += 2
+                        spawn_explosion(asteroid.position.x, asteroid.position.y, (255, 150, 50), 12)
                     else:
                         score += 3
+                        spawn_explosion(asteroid.position.x, asteroid.position.y, (255, 200, 100), 8)
+                    # Screen shake
+                    shake_timer = 0.1
+                    shake_intensity = 4
                     asteroid.split()
                     shot.kill()
         
-        screen.fill("black")
+        # Render game to offscreen surface
+        game_surface.fill("black")
+        
+        for thing in drawable:
+            thing.draw(game_surface)
+        
+        # Draw HUD on game surface (so it shakes with the world)
         score_text = font.render(f"Score: {score}", True, "white")
         lives_text = font.render(f"Lives: {lives}", True, "white")
-        screen.blit(score_text, (10, 10))
-        screen.blit(lives_text, (SCREEN_WIDTH - 120, 10))  # top-right
-
-        for thing in drawable:
-            thing.draw(screen)
+        game_surface.blit(score_text, (10, 10))
+        game_surface.blit(lives_text, (SCREEN_WIDTH - 120, 10))
+        
+        # Screen shake offset
+        shake_offset = pygame.Vector2(0, 0)
+        if shake_timer > 0:
+            shake_timer -= dt
+            shake_offset = pygame.Vector2(
+                random.uniform(-shake_intensity, shake_intensity),
+                random.uniform(-shake_intensity, shake_intensity)
+            )
+        
+        # Blit game surface to screen with shake offset
+        screen.fill("black")
+        screen.blit(game_surface, shake_offset)
         pygame.display.flip()
         dt = clock.tick(60) / 1000
         
