@@ -42,12 +42,6 @@ class Player(CircleShape):
             self.invulnerable_timer -= dt
         self.velocity *= PLAYER_DRAG
         super().update(dt)
-        if keys[pygame.K_w]:
-            self.move(dt, 1)
-            print(f"W pressed: vel={self.velocity}")  # debug
-        if keys[pygame.K_s]:
-            self.move(dt, -1)
-            print(f"S pressed: vel={self.velocity}")  # debug
 
         if keys[pygame.K_a]:
             self.rotate(-dt)
