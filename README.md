@@ -43,6 +43,7 @@ shot.py           → projectiles: simple circle, linear motion (dies off-screen
 asteroid.py       → rocks: draw, drift, split into 2 smaller + faster
 asteroidfield.py  → spawner: 4 screen edges, 1.5s interval, 3 size tiers
 particle.py       → explosion particles: fade, shrink, auto-cleanup
+background.py     → parallax starfield: 3 layers, depth perception
 logger.py         → JSONL state/events (game_state.jsonl, game_events.jsonl)
 ```
 
