@@ -58,7 +58,8 @@ logger.py         → JSONL state/events (game_state.jsonl, game_events.jsonl)
 - **Irregular shape**: each asteroid is a unique lumpy polygon (8-14 vertices, 60-100% radius variance)
 - **Split physics**: 20–50° divergence, 1.2× speed boost — classic "ricochet" feel
 - **Shoot cooldown**: 0.3s — spam prevented, rhythm rewarded
-- **Collision**: circle-vs-circle (distance ≤ r₁ + r₂)
+- **Player collision**: triangle-vs-circle (ship hitbox matches sprite exactly)
+- **Other collisions**: circle-vs-circle (distance ≤ r₁ + r₂)
 - **Wrap-around**: objects wrap at screen edges — fly off one side, appear on the other (classic Asteroids)
 - **Shots**: die when leaving screen — no wrapping, no accumulation
 - **Explosions**: particle burst + screen shake on asteroid destruction
@@ -89,7 +90,6 @@ Perfect for post-game analysis, replay visualisation, or training an RL agent.
 - **Score / lives / levels** — `constants.py` already has the hooks
 - **Background starfield** — parallax layers in draw loop
 - **Lumpy asteroids** — per-vertex radius variation in `Asteroid.draw()`
-- **Triangular ship hitbox** — SAT collision or point-in-triangle test
 - **Sound** — `pygame.mixer` one-liners at event sites
 - **High-score file** — append to `logger.py`'s event sink
 - **AI bot** — replace `Player.update()` with a policy network; state log is your dataset

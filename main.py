@@ -49,7 +49,7 @@ def main():
         updatable.update(dt)
         background.update(dt, player.velocity)
         for thing in asteroids:
-            if thing.collides_with(player) and player.invulnerable_timer <= 0:
+            if player.collides_with(thing) and player.invulnerable_timer <= 0:
                 log_event("player_hit")
                 lives -= 1
                 if lives > 0:

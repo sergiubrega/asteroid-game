@@ -12,6 +12,28 @@ from constants import (
     PLAYER_SHOOT_COOLDOWN_SECONDS,
 )
 
+def _closest_point_on_segment(p: pygame.Vector2, a: pygame.Vector2, b: pygame.Vector2) -> pygame.Vector2:
+    """Return the closest point on line segment AB to point P."""
+    ab = b - a
+    t = (p - a).dot(ab) / ab.dot(ab) if ab.dot(ab) > 0 else 0
+    t = max(0.0, min(1.0, t))
+    return a + ab * t
+
+def _point_in_triangle(p: pygame.Vector2, a: pygame.Vector2, b: pygame.Vector2, c: pygame.Vector2) -> bool:
+    """Check if point P is inside triangle ABC using barycentric technique."""
+    v0 = c - a
+    v1 = b - a
+    v2 = p - a
+    dot00 = v0.dot(v0)
+    dot01 = v0.dot(v1)
+    dot02 = v0.dot(v2)
+    dot11 = v1.dot(v1)
+    dot12 = v1.dot(v2)
+    inv_denom = 1.0 / (dot00 * dot11 - dot01 * dot01) if (dot00 * dot11 - dot01 * dot01) != 0 else 0
+    u = (dot11 * dot02 - dot01 * dot12) * inv_denom
+    v = (dot00 * dot12 - dot01 * dot02) * inv_denom
+    return (u >= 0) and (v >= 0) and (u + v <= 1)
+
 class Player(CircleShape):
     def __init__(self, x, y):
         super().__init__(x, y, PLAYER_RADIUS)
@@ -72,3 +94,26 @@ class Player(CircleShape):
         self.position = pygame.Vector2(x, y)
         self.velocity = pygame.Vector2(0, 0)
         self.invulnerable_timer = 2.0
+    
+    def collides_with(self, other: "CircleShape") -> bool:
+        """Triangle (player) vs Circle (asteroid/shot) collision."""
+        tri = self.triangle()
+        a, b, c = tri[0], tri[1], tri[2]
+        center = other.position
+        radius = other.radius
+        
+        # If circle center is inside triangle, collision
+        if _point_in_triangle(center, a, b, c):
+            return True
+        
+        # Check distance to each edge
+        closest = _closest_point_on_segment(center, a, b)
+        min_dist = center.distance_to(closest)
+        
+        closest = _closest_point_on_segment(center, b, c)
+        min_dist = min(min_dist, center.distance_to(closest))
+        
+        closest = _closest_point_on_segment(center, c, a)
+        min_dist = min(min_dist, center.distance_to(closest))
+        
+        return min_dist <= radius
