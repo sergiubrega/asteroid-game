@@ -7,6 +7,7 @@ from player import Player
 from asteroid import Asteroid
 from asteroidfield import AsteroidField
 from shot import Shot
+from laser import Laser
 from particle import Particle, spawn_explosion
 from background import Background
 
@@ -28,6 +29,7 @@ def main():
     Asteroid.containers = (asteroids, updatable, drawable)
     AsteroidField.containers = (updatable)
     Shot.containers = (shots, updatable, drawable)
+    Laser.containers = (updatable, drawable)
     Particle.containers = (updatable, drawable)
     asteroid_field = AsteroidField()
     player = Player(x, y)
@@ -45,8 +47,13 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_q:
+                    player.cycle_weapon(-1)
+                elif event.key == pygame.K_e:
+                    player.cycle_weapon(1)
 
-        updatable.update(dt)
+        updatable.update(dt, asteroids)
         background.update(dt, player.velocity)
         for thing in asteroids:
             if player.collides_with(thing) and player.invulnerable_timer <= 0:
@@ -59,6 +66,7 @@ def main():
                     print("Game over! Final score:", score)
                     sys.exit()
 
+        # Shot collision with asteroids
         for asteroid in asteroids:
             for shot in shots:
                 if shot.collides_with(asteroid):
@@ -78,6 +86,24 @@ def main():
                     asteroid.split()
                     shot.kill()
 
+        # Laser collision with asteroids
+        for laser_obj in [obj for obj in updatable if isinstance(obj, Laser)]:
+            hit_asteroid = laser_obj.check_collision(asteroids)
+            if hit_asteroid:
+                log_event("asteroid_shot")
+                if hit_asteroid.radius == ASTEROID_MIN_RADIUS * 3:
+                    score += 1
+                    spawn_explosion(hit_asteroid.position.x, hit_asteroid.position.y, (255, 100, 50), 16)
+                elif hit_asteroid.radius == ASTEROID_MIN_RADIUS * 2:
+                    score += 2
+                    spawn_explosion(hit_asteroid.position.x, hit_asteroid.position.y, (255, 150, 50), 12)
+                else:
+                    score += 3
+                    spawn_explosion(hit_asteroid.position.x, hit_asteroid.position.y, (255, 200, 100), 8)
+                # Screen shake
+                shake_timer = 0.1
+                shake_intensity = 4
+
         # Render game to offscreen surface
         game_surface.fill("black")
         # Draw background first
@@ -89,8 +115,10 @@ def main():
         # Draw HUD on game surface (so it shakes with the world)
         score_text = font.render(f"Score: {score}", True, "white")
         lives_text = font.render(f"Lives: {lives}", True, "white")
+        weapon_text = font.render(f"Weapon: {player.weapon_type.upper()}", True, "white")
         game_surface.blit(score_text, (10, 10))
         game_surface.blit(lives_text, (SCREEN_WIDTH - 120, 10))
+        game_surface.blit(weapon_text, (10, 50))
 
         # Screen shake offset
         shake_offset = pygame.Vector2(0, 0)

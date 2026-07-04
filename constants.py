@@ -14,3 +14,14 @@ PLAYER_SHOOT_COOLDOWN_SECONDS = 0.3
 PLAYER_ACCELERATION = 100   # pixels/sec²
 PLAYER_DRAG = 0.98          # per-frame velocity multiplier (2% drag at 60fps)
 PLAYER_MAX_SPEED = 400      # optional speed cap
+
+# Weapons
+WEAPON_TYPES = ["single", "spread", "homing", "laser"]
+WEAPON_COUNT = len(WEAPON_TYPES)
+
+WEAPON_STATS = {
+    "single": {"speed": 500, "cooldown": 0.30, "damage": 1, "extra": {}},
+    "spread": {"speed": 450, "cooldown": 0.50, "damage": 1, "extra": {"count": 3, "angle": 15}},
+    "homing": {"speed": 350, "cooldown": 0.60, "damage": 1, "extra": {"turn_rate": 180}},
+    "laser":  {"speed": 800, "cooldown": 1.00, "damage": 2, "extra": {"duration": 0.2, "width": 4}},
+}

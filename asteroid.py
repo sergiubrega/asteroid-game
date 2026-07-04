@@ -34,7 +34,7 @@ class Asteroid(CircleShape):
         world_vertices = [self.position + v for v in self.vertices]
         pygame.draw.polygon(screen, "white", world_vertices, LINE_WIDTH)
 
-    def update(self, dt: float) -> None:
+    def update(self, dt: float, asteroids=None) -> None:
         super().update(dt)
 
     def split(self):

@@ -1,6 +1,7 @@
 import pygame
 from circleshape import CircleShape
 from shot import Shot
+from laser import Laser
 from constants import (
     PLAYER_ACCELERATION,
     PLAYER_DRAG,
@@ -10,6 +11,9 @@ from constants import (
     PLAYER_TURN_SPEED,
     PLAYER_SHOOT_SPEED,
     PLAYER_SHOOT_COOLDOWN_SECONDS,
+    WEAPON_TYPES,
+    WEAPON_STATS,
+    WEAPON_COUNT,
 )
 
 def _closest_point_on_segment(p: pygame.Vector2, a: pygame.Vector2, b: pygame.Vector2) -> pygame.Vector2:
@@ -40,7 +44,9 @@ class Player(CircleShape):
         self.rotation = 0
         self.shot_cooldown = 0
         self.invulnerable_timer = 0
-    
+        self.weapon_index = 0
+        self.weapon_type = WEAPON_TYPES[self.weapon_index]
+   
     # in the Player class
     def triangle(self) -> list[pygame.Vector2]:
         forward = pygame.Vector2(0, 1).rotate(self.rotation)
@@ -57,7 +63,7 @@ class Player(CircleShape):
     def rotate(self, dt):
         self.rotation += PLAYER_TURN_SPEED * dt
     
-    def update(self, dt: float) -> None:
+    def update(self, dt: float, asteroids=None) -> None:
         keys = pygame.key.get_pressed()
         self.shot_cooldown -= dt
         if self.invulnerable_timer > 0:
@@ -86,10 +92,50 @@ class Player(CircleShape):
 
     def shoot(self):
         if not self.shot_cooldown > 0:
+            stats = WEAPON_STATS[self.weapon_type]
+            self.shot_cooldown = stats["cooldown"]
+            
+            if self.weapon_type == "single":
+                self._shoot_single(stats)
+            elif self.weapon_type == "spread":
+                self._shoot_spread(stats)
+            elif self.weapon_type == "homing":
+                self._shoot_homing(stats)
+            elif self.weapon_type == "laser":
+                self._shoot_laser(stats)
+
+    def _shoot_single(self, stats):
+        shot = Shot(self.position.x, self.position.y)
+        shot.velocity = pygame.Vector2(0, 1).rotate(self.rotation) * stats["speed"]
+        shot.damage = stats["damage"]
+
+    def _shoot_spread(self, stats):
+        count = stats["extra"]["count"]
+        angle = stats["extra"]["angle"]
+        start_angle = self.rotation - (count - 1) * angle / 2
+        for i in range(count):
+            shot_angle = start_angle + i * angle
             shot = Shot(self.position.x, self.position.y)
-            shot.velocity = pygame.Vector2(0, 1).rotate(self.rotation) * PLAYER_SHOOT_SPEED
-            self.shot_cooldown = PLAYER_SHOOT_COOLDOWN_SECONDS
-    
+            shot.velocity = pygame.Vector2(0, 1).rotate(shot_angle) * stats["speed"]
+            shot.damage = stats["damage"]
+
+    def _shoot_homing(self, stats):
+        shot = Shot(self.position.x, self.position.y)
+        shot.velocity = pygame.Vector2(0, 1).rotate(self.rotation) * stats["speed"]
+        shot.damage = stats["damage"]
+        shot.turn_rate = stats["extra"]["turn_rate"]
+        shot.is_homing = True
+
+    def _shoot_laser(self, stats):
+        # Laser starts from ship's triangle tip (forward point)
+        forward = pygame.Vector2(0, 1).rotate(self.rotation)
+        tip_pos = self.position + forward * self.radius
+        laser = Laser(tip_pos.x, tip_pos.y, self.rotation, stats, self.velocity)
+        
+    def cycle_weapon(self, direction):
+        self.weapon_index = (self.weapon_index + direction) % WEAPON_COUNT
+        self.weapon_type = WEAPON_TYPES[self.weapon_index]
+
     def respawn(self, x, y):
         self.position = pygame.Vector2(x, y)
         self.velocity = pygame.Vector2(0, 0)

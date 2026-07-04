@@ -24,7 +24,7 @@ class Particle(CircleShape):
         pygame.draw.circle(particle_surface, color_with_alpha, (self.radius, self.radius), self.radius)
         screen.blit(particle_surface, (self.position.x - self.radius, self.position.y - self.radius))
 
-    def update(self, dt: float) -> None:
+    def update(self, dt: float, asteroids=None) -> None:
         super().update(dt)
         self.life -= dt
         # Shrink as life decreases

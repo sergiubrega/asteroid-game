@@ -28,6 +28,7 @@ python main.py
 | `A` | Rotate left |
 | `D` | Rotate right |
 | `SPACE` | Fire |
+| `Q` / `E` | Cycle weapon backward / forward |
 | `✕` (window close) | Quit |
 
 ---
@@ -63,6 +64,21 @@ logger.py         → JSONL state/events (game_state.jsonl, game_events.jsonl)
 - **Wrap-around**: objects wrap at screen edges — fly off one side, appear on the other (classic Asteroids)
 - **Shots**: die when leaving screen — no wrapping, no accumulation
 - **Explosions**: particle burst + screen shake on asteroid destruction
+
+---
+
+## 🔫 Weapon System
+
+Press **Q/E** to cycle through 4 weapon types:
+
+| Weapon | Behavior | Cooldown | Speed | Damage |
+|--------|----------|----------|-------|--------|
+| **Single** | One straight shot | 0.30s | 500 | 1 |
+| **Spread** | 3-shot fan (±15°) | 0.50s | 450 | 1 |
+| **Homing** | Tracks nearest asteroid | 0.60s | 350 | 1 |
+| **Laser** | Continuous beam, 0.2s duration | 1.00s | 800 | 2 |
+
+Current weapon shown in HUD (top-left).
 
 ---
 
