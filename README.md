@@ -46,6 +46,7 @@ asteroid.py       → rocks: draw, drift, split into 2 smaller + faster
 asteroidfield.py  → spawner: 4 screen edges, 1.5s interval, 3 size tiers
 particle.py       → explosion particles: fade, shrink, auto-cleanup
 background.py     → parallax starfield: 3 layers, depth perception
+sounds.py         → procedural sound effects: shoot, explode, thrust, power-up
 logger.py         → JSONL state/events (game_state.jsonl, game_events.jsonl)
 ```
 
@@ -111,6 +112,23 @@ Current weapon shown in HUD (top-left).
 - Can stack up to 3 bombs
 
 Current shield/speed/bomb status shown in HUD (top-left, below weapon).
+
+---
+
+## 🔊 Sound Effects
+
+All sound effects are **procedurally generated** at runtime — no external audio files needed:
+
+| Event | Sound Description |
+|-------|-------------------|
+| **Shoot** | Quick descending laser tone (800→200 Hz) |
+| **Explosion** | White noise burst with low-frequency rumble |
+| **Thrust** | Loopable engine rumble (80 Hz base + noise) |
+| **Power-up** | Ascending 4-note chime (C5 → E5 → G5 → C6) |
+| **Bomb** | Deep explosion with heavy low-end rumble |
+| **Game Over** | Descending minor chord over 1 second |
+
+Generated via `pygame.mixer.Sound` from raw PCM buffers in `sounds.py`.
 
 ---
 

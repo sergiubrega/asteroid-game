@@ -13,6 +13,9 @@ wheels/
 game_state.jsonl
 game_events.jsonl
 
+# Game save data
+highscores.json
+
 # macOS
 .DS_Store
 

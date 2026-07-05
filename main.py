@@ -17,6 +17,7 @@ from laser import Laser
 from particle import Particle, spawn_explosion
 from background import Background
 from powerup import ShieldPowerUp, SpeedPowerUp, BombPowerUp
+from sounds import get_sound_manager
 
 # High score file
 HIGHSCORE_FILE = "highscores.json"
@@ -75,6 +76,7 @@ def main():
     asteroid_field = AsteroidField()
     player = Player(x, y)
     background = Background()
+    sound_manager = get_sound_manager()
     score = 0
     lives = 3
     font = pygame.font.Font(None, 36)
@@ -86,6 +88,10 @@ def main():
     # Game over state
     game_over = False
     highscores = load_highscores()
+    # Track if game over sound has played
+    game_over_sound_played = False
+    # Track thrust key state
+    was_thrusting = False
     while True:
         log_state()
         for event in pygame.event.get():
@@ -99,6 +105,7 @@ def main():
                 elif event.key == pygame.K_LSHIFT or event.key == pygame.K_RSHIFT:
                     if player.drop_bomb():
                         log_event("bomb_dropped")
+                        get_sound_manager().play_bomb()
                         # Destroy asteroids within blast radius
                         destroyed_count = 0
                         for asteroid in list(asteroids):
@@ -127,6 +134,7 @@ def main():
                 # Check if shield is active - if so, destroy asteroid but no damage
                 if player.shield_active:
                     log_event("shield_blocked")
+                    get_sound_manager().play_explosion()
                     if thing.radius == ASTEROID_MIN_RADIUS * 3:
                         score += 1
                         spawn_explosion(thing.position.x, thing.position.y, (255, 100, 50), 16)
@@ -151,6 +159,7 @@ def main():
                         BombPowerUp(thing.position.x, thing.position.y)
                 elif player.invulnerable_timer <= 0:
                     log_event("player_hit")
+                    get_sound_manager().play_explosion()
                     lives -= 1
                     if lives > 0:
                         # respawn player at center
@@ -161,12 +170,14 @@ def main():
                         add_highscore(score)
                         highscores = load_highscores()
                         log_event("game_over", score=score)
+                        get_sound_manager().play_game_over()
 
         # Shot collision with asteroids
         for asteroid in asteroids:
             for shot in shots:
                 if shot.collides_with(asteroid):
                     log_event("asteroid_shot")
+                    get_sound_manager().play_explosion()
                     if asteroid.radius == ASTEROID_MIN_RADIUS * 3:
                         score += 1
                         spawn_explosion(asteroid.position.x, asteroid.position.y, (255, 100, 50), 16)
@@ -196,6 +207,7 @@ def main():
             hit_asteroid = laser_obj.check_collision(asteroids)
             if hit_asteroid:
                 log_event("asteroid_shot")
+                get_sound_manager().play_explosion()
                 if hit_asteroid.radius == ASTEROID_MIN_RADIUS * 3:
                     score += 1
                     spawn_explosion(hit_asteroid.position.x, hit_asteroid.position.y, (255, 100, 50), 16)
@@ -222,6 +234,7 @@ def main():
         for powerup in powerups:
             if player.collides_with(powerup):
                 powerup.apply_effect(player)
+                get_sound_manager().play_powerup()
                 powerup.kill()
 
         # Render game to offscreen surface

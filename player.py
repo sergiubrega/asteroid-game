@@ -18,6 +18,7 @@ from constants import (
     BOMB_MAX_COUNT,
     BOMB_EXPLOSION_RADIUS,
 )
+from sounds import get_sound_manager
 
 
 def _closest_point_on_segment(p: pygame.Vector2, a: pygame.Vector2, b: pygame.Vector2) -> pygame.Vector2:
@@ -57,6 +58,8 @@ class Player(CircleShape):
         self.bomb_count = 0
         self.weapon_index = 0
         self.weapon_type = WEAPON_TYPES[self.weapon_index]
+        self._was_thrusting = False  # Track thrust state for sound
+        get_sound_manager()  # Initialize sound manager
 
     # in the Player class
     def triangle(self) -> list[pygame.Vector2]:
@@ -88,6 +91,7 @@ class Player(CircleShape):
 
     def update(self, dt: float, asteroids=None) -> None:
         keys = pygame.key.get_pressed()
+        sound_manager = get_sound_manager()
         if self.shot_cooldown > 0:
             self.shot_cooldown -= dt
         if self.invulnerable_timer > 0:
@@ -105,6 +109,14 @@ class Player(CircleShape):
         self.velocity *= PLAYER_DRAG
         super().update(dt)
 
+        # Handle thrust sound
+        is_thrusting = keys[pygame.K_w] or keys[pygame.K_s]
+        if is_thrusting and not self._was_thrusting:
+            sound_manager.start_thrust()
+        elif not is_thrusting and self._was_thrusting:
+            sound_manager.stop_thrust()
+        self._was_thrusting = is_thrusting
+
         if keys[pygame.K_a]:
             self.rotate(-dt)
         if keys[pygame.K_d]:
@@ -115,6 +127,7 @@ class Player(CircleShape):
             self.move(dt, -1)
         if keys[pygame.K_SPACE]:
             self.shoot()
+            get_sound_manager().play_shoot()
 
     def move(self, dt, direction=1):  # 1=forward, -1=backward
         forward = pygame.Vector2(0, 1).rotate(self.rotation)
