@@ -30,6 +30,7 @@ python main.py
 | `SPACE` | Fire |
 | `Q` / `E` | Cycle weapon backward / forward |
 | `✕` (window close) | Quit |
+| Any key (Game Over) | Exit game |
 
 ---
 
@@ -113,7 +114,12 @@ Current shield/speed/bomb status shown in HUD (top-left, below weapon).
 
 ---
 
-## 📊 Logging (built-in)
+## 📊 High Scores
+High scores are automatically saved to `highscores.json` and displayed on the Game Over screen. The top 10 scores persist between game sessions.
+
+---
+
+## 📜 Logging (built-in)
 
 Every run produces two JSONL files:
 

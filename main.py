@@ -1,5 +1,7 @@
 import sys
 import random
+import json
+import os
 import pygame
 from constants import (
     SCREEN_WIDTH, SCREEN_HEIGHT, ASTEROID_MIN_RADIUS, 
@@ -15,6 +17,36 @@ from laser import Laser
 from particle import Particle, spawn_explosion
 from background import Background
 from powerup import ShieldPowerUp, SpeedPowerUp, BombPowerUp
+
+# High score file
+HIGHSCORE_FILE = "highscores.json"
+
+def load_highscores() -> list:
+    """Load high scores from file."""
+    if not os.path.exists(HIGHSCORE_FILE):
+        return []
+    try:
+        with open(HIGHSCORE_FILE, "r") as f:
+            return json.load(f)
+    except (json.JSONDecodeError, IOError):
+        return []
+
+def save_highscores(scores: list) -> None:
+    """Save high scores to file."""
+    try:
+        with open(HIGHSCORE_FILE, "w") as f:
+            json.dump(scores, f)
+    except IOError:
+        pass
+
+def add_highscore(score: int) -> None:
+    """Add a new score to the high scores list and save."""
+    scores = load_highscores()
+    scores.append(score)
+    scores.sort(reverse=True)
+    # Keep only top 10
+    scores = scores[:10]
+    save_highscores(scores)
 
 def main():
     print(f"Starting Asteroids with pygame version: {pygame.version.ver}")
@@ -51,6 +83,9 @@ def main():
     shake_intensity = 0
     # Offscreen surface for screen shake
     game_surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
+    # Game over state
+    game_over = False
+    highscores = load_highscores()
     while True:
         log_state()
         for event in pygame.event.get():
@@ -121,8 +156,11 @@ def main():
                         # respawn player at center
                         player.respawn(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
                     else:
-                        print("Game over! Final score:", score)
-                        sys.exit()
+                        # Game over - show high scores screen
+                        game_over = True
+                        add_highscore(score)
+                        highscores = load_highscores()
+                        log_event("game_over", score=score)
 
         # Shot collision with asteroids
         for asteroid in asteroids:
@@ -217,6 +255,42 @@ def main():
             bomb_text = font.render(f"BOMBS: {player.bomb_count}", True, (255, 50, 50))
             game_surface.blit(bomb_text, (10, 170))
 
+        # Game Over screen
+        if game_over:
+            # Dark overlay
+            overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
+            overlay.fill((0, 0, 0, 180))
+            game_surface.blit(overlay, (0, 0))
+            
+            # Game Over title
+            title_font = pygame.font.Font(None, 72)
+            title = title_font.render("GAME OVER", True, (255, 50, 50))
+            title_rect = title.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 120))
+            game_surface.blit(title, title_rect)
+            
+            # Final score
+            score_font = pygame.font.Font(None, 48)
+            final_score = score_font.render(f"Final Score: {score}", True, "white")
+            score_rect = final_score.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 40))
+            game_surface.blit(final_score, score_rect)
+            
+            # High scores
+            hs_font = pygame.font.Font(None, 36)
+            hs_title = hs_font.render("HIGH SCORES", True, (255, 215, 0))
+            hs_title_rect = hs_title.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 20))
+            game_surface.blit(hs_title, hs_title_rect)
+            
+            for i, hs in enumerate(highscores[:10]):
+                hs_text = hs_font.render(f"{i+1}. {hs}", True, "white")
+                hs_rect = hs_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 60 + i * 30))
+                game_surface.blit(hs_text, hs_rect)
+            
+            # Press any key to quit
+            hint_font = pygame.font.Font(None, 28)
+            hint = hint_font.render("Press any key to exit...", True, (150, 150, 150))
+            hint_rect = hint.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT - 50))
+            game_surface.blit(hint, hint_rect)
+
         # Screen shake offset
         shake_offset = pygame.Vector2(0, 0)
         if shake_timer > 0:
@@ -231,6 +305,14 @@ def main():
         screen.blit(game_surface, shake_offset)
         pygame.display.flip()
         dt = clock.tick(60) / 1000
+        
+        # Handle game over input
+        if game_over:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    return
+                if event.type == pygame.KEYDOWN:
+                    return
 
 
 if __name__ == "__main__":
