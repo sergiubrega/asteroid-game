@@ -25,3 +25,10 @@ WEAPON_STATS = {
     "homing": {"speed": 350, "cooldown": 0.60, "damage": 1, "extra": {"turn_rate": 180}},
     "laser":  {"speed": 800, "cooldown": 1.00, "damage": 2, "extra": {"duration": 0.2, "width": 4}},
 }
+
+# Shield Power-up
+SHIELD_DURATION = 5.0          # seconds
+SHIELD_SPAWN_CHANCE = 0.15     # 15% chance when asteroid destroyed
+SHIELD_RADIUS = 15             # pickup radius
+SHIELD_COLOR = (0, 200, 255)   # cyan
+SHIELD_GLOW_COLOR = (0, 255, 255, 100)  # glow for visual effect

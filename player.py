@@ -44,9 +44,11 @@ class Player(CircleShape):
         self.rotation = 0
         self.shot_cooldown = 0
         self.invulnerable_timer = 0
+        self.shield_timer = 0.0
+        self.shield_active = False
         self.weapon_index = 0
         self.weapon_type = WEAPON_TYPES[self.weapon_index]
-   
+  
     # in the Player class
     def triangle(self) -> list[pygame.Vector2]:
         forward = pygame.Vector2(0, 1).rotate(self.rotation)
@@ -59,15 +61,33 @@ class Player(CircleShape):
     def draw(self, screen: pygame.Surface) -> None:
         if self.invulnerable_timer <= 0 or int(self.invulnerable_timer * 10) % 2 == 0:
             pygame.draw.polygon(screen, "white", self.triangle(), LINE_WIDTH)
+        
+        # Draw shield effect when active
+        if self.shield_active:
+            # Pulsing shield ring
+            pulse = abs(pygame.math.Vector2(1, 0).angle_to(
+                pygame.Vector2(pygame.time.get_ticks() * 0.005, 0)
+            )) / 180.0
+            shield_radius = int(self.radius * 1.8 + pulse * 6)
+            alpha = int(100 + pulse * 100)
+            shield_surface = pygame.Surface((shield_radius * 2, shield_radius * 2), pygame.SRCALPHA)
+            pygame.draw.circle(shield_surface, (0, 200, 255, alpha), (shield_radius, shield_radius), shield_radius, 2)
+            screen.blit(shield_surface, (self.position.x - shield_radius, self.position.y - shield_radius))
 
     def rotate(self, dt):
         self.rotation += PLAYER_TURN_SPEED * dt
     
     def update(self, dt: float, asteroids=None) -> None:
         keys = pygame.key.get_pressed()
-        self.shot_cooldown -= dt
+        if self.shot_cooldown > 0:
+            self.shot_cooldown -= dt
         if self.invulnerable_timer > 0:
             self.invulnerable_timer -= dt
+        if self.shield_timer > 0:
+            self.shield_timer -= dt
+            if self.shield_timer <= 0:
+                self.shield_active = False
+                self.shield_timer = 0.0
         self.velocity *= PLAYER_DRAG
         super().update(dt)
 
@@ -139,7 +159,15 @@ class Player(CircleShape):
     def respawn(self, x, y):
         self.position = pygame.Vector2(x, y)
         self.velocity = pygame.Vector2(0, 0)
+        self.rotation = 0
         self.invulnerable_timer = 2.0
+        self.shield_timer = 0.0
+        self.shield_active = False
+    
+    def activate_shield(self, duration: float):
+        """Activate the shield for the given duration."""
+        self.shield_timer = duration
+        self.shield_active = True
     
     def collides_with(self, other: "CircleShape") -> bool:
         """Triangle (player) vs Circle (asteroid/shot) collision."""

@@ -1,7 +1,7 @@
 import sys
 import random
 import pygame
-from constants import SCREEN_WIDTH, SCREEN_HEIGHT, ASTEROID_MIN_RADIUS
+from constants import SCREEN_WIDTH, SCREEN_HEIGHT, ASTEROID_MIN_RADIUS, SHIELD_SPAWN_CHANCE
 from logger import log_state, log_event
 from player import Player
 from asteroid import Asteroid
@@ -10,6 +10,7 @@ from shot import Shot
 from laser import Laser
 from particle import Particle, spawn_explosion
 from background import Background
+from powerup import ShieldPowerUp
 
 def main():
     print(f"Starting Asteroids with pygame version: {pygame.version.ver}")
@@ -25,12 +26,14 @@ def main():
     drawable = pygame.sprite.Group()
     asteroids = pygame.sprite.Group()
     shots = pygame.sprite.Group()
+    powerups = pygame.sprite.Group()
     Player.containers = (updatable, drawable)
     Asteroid.containers = (asteroids, updatable, drawable)
     AsteroidField.containers = (updatable)
     Shot.containers = (shots, updatable, drawable)
     Laser.containers = (updatable, drawable)
     Particle.containers = (updatable, drawable)
+    ShieldPowerUp.containers = (powerups, updatable, drawable)
     asteroid_field = AsteroidField()
     player = Player(x, y)
     background = Background()
@@ -56,15 +59,35 @@ def main():
         updatable.update(dt, asteroids)
         background.update(dt, player.velocity)
         for thing in asteroids:
-            if player.collides_with(thing) and player.invulnerable_timer <= 0:
-                log_event("player_hit")
-                lives -= 1
-                if lives > 0:
-                    # respawn player at center
-                    player.respawn(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
-                else:
-                    print("Game over! Final score:", score)
-                    sys.exit()
+            if player.collides_with(thing):
+                # Check if shield is active - if so, destroy asteroid but no damage
+                if player.shield_active:
+                    log_event("shield_blocked")
+                    if thing.radius == ASTEROID_MIN_RADIUS * 3:
+                        score += 1
+                        spawn_explosion(thing.position.x, thing.position.y, (255, 100, 50), 16)
+                    elif thing.radius == ASTEROID_MIN_RADIUS * 2:
+                        score += 2
+                        spawn_explosion(thing.position.x, thing.position.y, (255, 150, 50), 12)
+                    else:
+                        score += 3
+                        spawn_explosion(thing.position.x, thing.position.y, (255, 200, 100), 8)
+                    # Screen shake
+                    shake_timer = 0.1
+                    shake_intensity = 4
+                    thing.split()
+                    # Chance to spawn shield power-up
+                    if random.random() < SHIELD_SPAWN_CHANCE:
+                        ShieldPowerUp(thing.position.x, thing.position.y)
+                elif player.invulnerable_timer <= 0:
+                    log_event("player_hit")
+                    lives -= 1
+                    if lives > 0:
+                        # respawn player at center
+                        player.respawn(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
+                    else:
+                        print("Game over! Final score:", score)
+                        sys.exit()
 
         # Shot collision with asteroids
         for asteroid in asteroids:
@@ -85,6 +108,9 @@ def main():
                     shake_intensity = 4
                     asteroid.split()
                     shot.kill()
+                    # Chance to spawn shield power-up
+                    if random.random() < SHIELD_SPAWN_CHANCE:
+                        ShieldPowerUp(asteroid.position.x, asteroid.position.y)
 
         # Laser collision with asteroids
         for laser_obj in [obj for obj in updatable if isinstance(obj, Laser)]:
@@ -103,6 +129,15 @@ def main():
                 # Screen shake
                 shake_timer = 0.1
                 shake_intensity = 4
+                # Chance to spawn shield power-up
+                if random.random() < SHIELD_SPAWN_CHANCE:
+                    ShieldPowerUp(hit_asteroid.position.x, hit_asteroid.position.y)
+
+        # Power-up collection
+        for powerup in powerups:
+            if player.collides_with(powerup):
+                powerup.apply_effect(player)
+                powerup.kill()
 
         # Render game to offscreen surface
         game_surface.fill("black")
@@ -119,6 +154,11 @@ def main():
         game_surface.blit(score_text, (10, 10))
         game_surface.blit(lives_text, (SCREEN_WIDTH - 120, 10))
         game_surface.blit(weapon_text, (10, 50))
+        
+        # Shield HUD
+        if player.shield_active:
+            shield_text = font.render(f"SHIELD: {player.shield_timer:.1f}s", True, (0, 200, 255))
+            game_surface.blit(shield_text, (10, 90))
 
         # Screen shake offset
         shake_offset = pygame.Vector2(0, 0)
