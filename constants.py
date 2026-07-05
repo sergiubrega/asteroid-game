@@ -32,3 +32,11 @@ SHIELD_SPAWN_CHANCE = 0.15     # 15% chance when asteroid destroyed
 SHIELD_RADIUS = 15             # pickup radius
 SHIELD_COLOR = (0, 200, 255)   # cyan
 SHIELD_GLOW_COLOR = (0, 255, 255, 100)  # glow for visual effect
+
+# Speed Boost Power-up
+SPEED_BOOST_DURATION = 5.0     # seconds
+SPEED_BOOST_SPAWN_CHANCE = 0.10  # 10% chance when asteroid destroyed
+SPEED_BOOST_RADIUS = 15        # pickup radius
+SPEED_BOOST_COLOR = (255, 200, 0)  # yellow/orange
+SPEED_BOOST_GLOW_COLOR = (255, 255, 0, 100)  # glow for visual effect
+SPEED_MULTIPLIER = 2.0         # 2x speed multiplier

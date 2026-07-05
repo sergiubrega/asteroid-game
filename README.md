@@ -92,7 +92,15 @@ Current weapon shown in HUD (top-left).
 - While active: asteroid collisions destroy the asteroid (with points + split) but **no damage/lives lost**
 - Can be refreshed by collecting another shield before timer expires
 
-Current shield status shown in HUD (top-left, below weapon).
+**Speed Boost Power-up** (yellow/orange glowing pickup):
+- Spawns with 10% chance when asteroids are destroyed
+- Drifts downward with pulsing glow
+- Collect to gain **5 seconds of 2x speed boost**
+- Visual: pulsing yellow ring around ship + HUD timer "SPEED BOOST: X.Xs"
+- While active: player acceleration is doubled, making movement much faster
+- Can be refreshed by collecting another speed boost before timer expires
+
+Current shield/speed status shown in HUD (top-left, below weapon).
 
 ---
 

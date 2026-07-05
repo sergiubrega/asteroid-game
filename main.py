@@ -1,7 +1,7 @@
 import sys
 import random
 import pygame
-from constants import SCREEN_WIDTH, SCREEN_HEIGHT, ASTEROID_MIN_RADIUS, SHIELD_SPAWN_CHANCE
+from constants import SCREEN_WIDTH, SCREEN_HEIGHT, ASTEROID_MIN_RADIUS, SHIELD_SPAWN_CHANCE, SPEED_BOOST_SPAWN_CHANCE
 from logger import log_state, log_event
 from player import Player
 from asteroid import Asteroid
@@ -10,7 +10,7 @@ from shot import Shot
 from laser import Laser
 from particle import Particle, spawn_explosion
 from background import Background
-from powerup import ShieldPowerUp
+from powerup import ShieldPowerUp, SpeedPowerUp
 
 def main():
     print(f"Starting Asteroids with pygame version: {pygame.version.ver}")
@@ -34,6 +34,7 @@ def main():
     Laser.containers = (updatable, drawable)
     Particle.containers = (updatable, drawable)
     ShieldPowerUp.containers = (powerups, updatable, drawable)
+    SpeedPowerUp.containers = (powerups, updatable, drawable)
     asteroid_field = AsteroidField()
     player = Player(x, y)
     background = Background()
@@ -79,6 +80,9 @@ def main():
                     # Chance to spawn shield power-up
                     if random.random() < SHIELD_SPAWN_CHANCE:
                         ShieldPowerUp(thing.position.x, thing.position.y)
+                    # Chance to spawn speed power-up
+                    if random.random() < SPEED_BOOST_SPAWN_CHANCE:
+                        SpeedPowerUp(thing.position.x, thing.position.y)
                 elif player.invulnerable_timer <= 0:
                     log_event("player_hit")
                     lives -= 1
@@ -111,6 +115,9 @@ def main():
                     # Chance to spawn shield power-up
                     if random.random() < SHIELD_SPAWN_CHANCE:
                         ShieldPowerUp(asteroid.position.x, asteroid.position.y)
+                    # Chance to spawn speed power-up
+                    if random.random() < SPEED_BOOST_SPAWN_CHANCE:
+                        SpeedPowerUp(asteroid.position.x, asteroid.position.y)
 
         # Laser collision with asteroids
         for laser_obj in [obj for obj in updatable if isinstance(obj, Laser)]:
@@ -132,6 +139,9 @@ def main():
                 # Chance to spawn shield power-up
                 if random.random() < SHIELD_SPAWN_CHANCE:
                     ShieldPowerUp(hit_asteroid.position.x, hit_asteroid.position.y)
+                # Chance to spawn speed power-up
+                if random.random() < SPEED_BOOST_SPAWN_CHANCE:
+                    SpeedPowerUp(hit_asteroid.position.x, hit_asteroid.position.y)
 
         # Power-up collection
         for powerup in powerups:
@@ -159,6 +169,11 @@ def main():
         if player.shield_active:
             shield_text = font.render(f"SHIELD: {player.shield_timer:.1f}s", True, (0, 200, 255))
             game_surface.blit(shield_text, (10, 90))
+        
+        # Speed Boost HUD
+        if player.speed_boost_active:
+            speed_text = font.render(f"SPEED BOOST: {player.speed_boost_timer:.1f}s", True, (255, 200, 0))
+            game_surface.blit(speed_text, (10, 130))
 
         # Screen shake offset
         shake_offset = pygame.Vector2(0, 0)

@@ -14,6 +14,7 @@ from constants import (
     WEAPON_TYPES,
     WEAPON_STATS,
     WEAPON_COUNT,
+    SPEED_MULTIPLIER,
 )
 
 def _closest_point_on_segment(p: pygame.Vector2, a: pygame.Vector2, b: pygame.Vector2) -> pygame.Vector2:
@@ -46,6 +47,8 @@ class Player(CircleShape):
         self.invulnerable_timer = 0
         self.shield_timer = 0.0
         self.shield_active = False
+        self.speed_boost_timer = 0.0
+        self.speed_boost_active = False
         self.weapon_index = 0
         self.weapon_type = WEAPON_TYPES[self.weapon_index]
   
@@ -88,6 +91,11 @@ class Player(CircleShape):
             if self.shield_timer <= 0:
                 self.shield_active = False
                 self.shield_timer = 0.0
+        if self.speed_boost_timer > 0:
+            self.speed_boost_timer -= dt
+            if self.speed_boost_timer <= 0:
+                self.speed_boost_active = False
+                self.speed_boost_timer = 0.0
         self.velocity *= PLAYER_DRAG
         super().update(dt)
 
@@ -105,6 +113,11 @@ class Player(CircleShape):
     def move(self, dt, direction=1):  # 1=forward, -1=backward
         forward = pygame.Vector2(0, 1).rotate(self.rotation)
         acceleration = forward * PLAYER_ACCELERATION * direction * dt
+        
+        # Apply speed boost multiplier if active
+        if self.speed_boost_active:
+            acceleration *= SPEED_MULTIPLIER
+            
         self.velocity += acceleration
         # optional speed cap
         if self.velocity.length() > PLAYER_MAX_SPEED:
@@ -163,11 +176,18 @@ class Player(CircleShape):
         self.invulnerable_timer = 2.0
         self.shield_timer = 0.0
         self.shield_active = False
+        self.speed_boost_timer = 0.0
+        self.speed_boost_active = False
     
     def activate_shield(self, duration: float):
         """Activate the shield for the given duration."""
         self.shield_timer = duration
         self.shield_active = True
+    
+    def activate_speed_boost(self, duration: float):
+        """Activate the speed boost for the given duration."""
+        self.speed_boost_timer = duration
+        self.speed_boost_active = True
     
     def collides_with(self, other: "CircleShape") -> bool:
         """Triangle (player) vs Circle (asteroid/shot) collision."""

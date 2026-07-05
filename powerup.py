@@ -3,7 +3,9 @@ import pygame
 from circleshape import CircleShape
 from constants import (
     SCREEN_WIDTH, SCREEN_HEIGHT, SHIELD_RADIUS, SHIELD_COLOR, 
-    SHIELD_GLOW_COLOR, SHIELD_DURATION
+    SHIELD_GLOW_COLOR, SHIELD_DURATION,
+    SPEED_BOOST_RADIUS, SPEED_BOOST_COLOR, SPEED_BOOST_GLOW_COLOR, SPEED_BOOST_DURATION,
+    SPEED_MULTIPLIER
 )
 
 
@@ -68,3 +70,42 @@ class ShieldPowerUp(PowerUp):
     
     def apply_effect(self, player) -> None:
         player.activate_shield(SHIELD_DURATION)
+
+
+class SpeedPowerUp(PowerUp):
+    """Temporary speed boost for the player."""
+    
+    def __init__(self, x: float, y: float) -> None:
+        super().__init__(x, y, SPEED_BOOST_RADIUS, SPEED_BOOST_COLOR, "speed")
+    
+    def apply_effect(self, player) -> None:
+        player.activate_speed_boost(SPEED_BOOST_DURATION)
+    
+    def draw(self, screen: pygame.Surface) -> None:
+        # Pulsing glow effect
+        pulse = abs(pygame.math.Vector2(1, 0).angle_to(
+            pygame.Vector2(pygame.time.get_ticks() * 0.003, 0)
+        )) / 180.0
+        glow_size = int(self.radius + 4 + pulse * 4)
+        
+        # Draw glow
+        glow_surface = pygame.Surface((glow_size * 2, glow_size * 2), pygame.SRCALPHA)
+        pygame.draw.circle(glow_surface, SPEED_BOOST_GLOW_COLOR, (glow_size, glow_size), glow_size)
+        screen.blit(glow_surface, (self.position.x - glow_size, self.position.y - glow_size))
+        
+        # Draw core circle
+        pygame.draw.circle(screen, self.color, self.position, self.radius, 2)
+        
+        # Draw inner symbol - lightning bolt
+        inner_radius = self.radius - 3
+        # Draw a simple lightning bolt
+        center_x, center_y = self.position.x, self.position.y
+        points = [
+            (center_x, center_y - inner_radius),
+            (center_x - 3, center_y - 2),
+            (center_x + 2, center_y - 2),
+            (center_x - 1, center_y + inner_radius - 2),
+            (center_x + 3, center_y + 2),
+            (center_x - 2, center_y + 2),
+        ]
+        pygame.draw.polygon(screen, self.color, points)
