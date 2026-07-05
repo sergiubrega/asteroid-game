@@ -5,7 +5,8 @@ from constants import (
     SCREEN_WIDTH, SCREEN_HEIGHT, SHIELD_RADIUS, SHIELD_COLOR, 
     SHIELD_GLOW_COLOR, SHIELD_DURATION,
     SPEED_BOOST_RADIUS, SPEED_BOOST_COLOR, SPEED_BOOST_GLOW_COLOR, SPEED_BOOST_DURATION,
-    SPEED_MULTIPLIER
+    SPEED_MULTIPLIER,
+    BOMB_RADIUS, BOMB_COLOR, BOMB_GLOW_COLOR, BOMB_SPAWN_CHANCE, BOMB_EXPLOSION_RADIUS
 )
 
 
@@ -109,3 +110,41 @@ class SpeedPowerUp(PowerUp):
             (center_x - 2, center_y + 2),
         ]
         pygame.draw.polygon(screen, self.color, points)
+
+
+class BombPowerUp(PowerUp):
+    """Bomb power-up that can be dropped to clear nearby asteroids."""
+    
+    def __init__(self, x: float, y: float) -> None:
+        super().__init__(x, y, BOMB_RADIUS, BOMB_COLOR, "bomb")
+    
+    def apply_effect(self, player) -> None:
+        player.add_bomb()
+    
+    def draw(self, screen: pygame.Surface) -> None:
+        # Pulsing glow effect
+        pulse = abs(pygame.math.Vector2(1, 0).angle_to(
+            pygame.Vector2(pygame.time.get_ticks() * 0.003, 0)
+        )) / 180.0
+        glow_size = int(self.radius + 4 + pulse * 4)
+        
+        # Draw glow
+        glow_surface = pygame.Surface((glow_size * 2, glow_size * 2), pygame.SRCALPHA)
+        pygame.draw.circle(glow_surface, BOMB_GLOW_COLOR, (glow_size, glow_size), glow_size)
+        screen.blit(glow_surface, (self.position.x - glow_size, self.position.y - glow_size))
+        
+        # Draw core circle
+        pygame.draw.circle(screen, self.color, self.position, self.radius, 2)
+        
+        # Draw inner symbol - bomb icon (circle with fuse)
+        inner_radius = self.radius - 3
+        center_x, center_y = self.position.x, self.position.y
+        # Bomb body
+        pygame.draw.circle(screen, self.color, (center_x, center_y + 2), inner_radius, 2)
+        # Fuse
+        pygame.draw.line(screen, self.color, 
+                        (center_x, center_y - inner_radius + 2), 
+                        (center_x, center_y - inner_radius - 4), 2)
+        # Spark on fuse
+        pygame.draw.circle(screen, (255, 200, 0), 
+                          (int(center_x), int(center_y - inner_radius - 4)), 2)

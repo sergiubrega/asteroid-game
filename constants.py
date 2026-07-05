@@ -40,3 +40,11 @@ SPEED_BOOST_RADIUS = 15        # pickup radius
 SPEED_BOOST_COLOR = (255, 200, 0)  # yellow/orange
 SPEED_BOOST_GLOW_COLOR = (255, 255, 0, 100)  # glow for visual effect
 SPEED_MULTIPLIER = 2.0         # 2x speed multiplier
+
+# Bomb
+BOMB_RADIUS = 8                # pickup radius
+BOMB_COLOR = (255, 50, 50)     # red
+BOMB_GLOW_COLOR = (255, 100, 100, 100)  # glow for visual effect
+BOMB_SPAWN_CHANCE = 0.05       # 5% chance when asteroid destroyed
+BOMB_EXPLOSION_RADIUS = 200    # blast radius in pixels
+BOMB_MAX_COUNT = 3             # max bombs player can carry

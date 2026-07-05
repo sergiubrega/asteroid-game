@@ -15,7 +15,10 @@ from constants import (
     WEAPON_STATS,
     WEAPON_COUNT,
     SPEED_MULTIPLIER,
+    BOMB_MAX_COUNT,
+    BOMB_EXPLOSION_RADIUS,
 )
+
 
 def _closest_point_on_segment(p: pygame.Vector2, a: pygame.Vector2, b: pygame.Vector2) -> pygame.Vector2:
     """Return the closest point on line segment AB to point P."""
@@ -23,6 +26,7 @@ def _closest_point_on_segment(p: pygame.Vector2, a: pygame.Vector2, b: pygame.Ve
     t = (p - a).dot(ab) / ab.dot(ab) if ab.dot(ab) > 0 else 0
     t = max(0.0, min(1.0, t))
     return a + ab * t
+
 
 def _point_in_triangle(p: pygame.Vector2, a: pygame.Vector2, b: pygame.Vector2, c: pygame.Vector2) -> bool:
     """Check if point P is inside triangle ABC using barycentric technique."""
@@ -39,6 +43,7 @@ def _point_in_triangle(p: pygame.Vector2, a: pygame.Vector2, b: pygame.Vector2, 
     v = (dot00 * dot12 - dot01 * dot02) * inv_denom
     return (u >= 0) and (v >= 0) and (u + v <= 1)
 
+
 class Player(CircleShape):
     def __init__(self, x, y):
         super().__init__(x, y, PLAYER_RADIUS)
@@ -49,9 +54,10 @@ class Player(CircleShape):
         self.shield_active = False
         self.speed_boost_timer = 0.0
         self.speed_boost_active = False
+        self.bomb_count = 0
         self.weapon_index = 0
         self.weapon_type = WEAPON_TYPES[self.weapon_index]
-  
+
     # in the Player class
     def triangle(self) -> list[pygame.Vector2]:
         forward = pygame.Vector2(0, 1).rotate(self.rotation)
@@ -64,7 +70,7 @@ class Player(CircleShape):
     def draw(self, screen: pygame.Surface) -> None:
         if self.invulnerable_timer <= 0 or int(self.invulnerable_timer * 10) % 2 == 0:
             pygame.draw.polygon(screen, "white", self.triangle(), LINE_WIDTH)
-        
+
         # Draw shield effect when active
         if self.shield_active:
             # Pulsing shield ring
@@ -79,7 +85,7 @@ class Player(CircleShape):
 
     def rotate(self, dt):
         self.rotation += PLAYER_TURN_SPEED * dt
-    
+
     def update(self, dt: float, asteroids=None) -> None:
         keys = pygame.key.get_pressed()
         if self.shot_cooldown > 0:
@@ -109,15 +115,15 @@ class Player(CircleShape):
             self.move(dt, -1)
         if keys[pygame.K_SPACE]:
             self.shoot()
-    
+
     def move(self, dt, direction=1):  # 1=forward, -1=backward
         forward = pygame.Vector2(0, 1).rotate(self.rotation)
         acceleration = forward * PLAYER_ACCELERATION * direction * dt
-        
+
         # Apply speed boost multiplier if active
         if self.speed_boost_active:
             acceleration *= SPEED_MULTIPLIER
-            
+
         self.velocity += acceleration
         # optional speed cap
         if self.velocity.length() > PLAYER_MAX_SPEED:
@@ -127,7 +133,7 @@ class Player(CircleShape):
         if not self.shot_cooldown > 0:
             stats = WEAPON_STATS[self.weapon_type]
             self.shot_cooldown = stats["cooldown"]
-            
+
             if self.weapon_type == "single":
                 self._shoot_single(stats)
             elif self.weapon_type == "spread":
@@ -164,7 +170,7 @@ class Player(CircleShape):
         forward = pygame.Vector2(0, 1).rotate(self.rotation)
         tip_pos = self.position + forward * self.radius
         laser = Laser(tip_pos.x, tip_pos.y, self.rotation, stats, self.velocity)
-        
+
     def cycle_weapon(self, direction):
         self.weapon_index = (self.weapon_index + direction) % WEAPON_COUNT
         self.weapon_type = WEAPON_TYPES[self.weapon_index]
@@ -178,36 +184,49 @@ class Player(CircleShape):
         self.shield_active = False
         self.speed_boost_timer = 0.0
         self.speed_boost_active = False
-    
+        self.bomb_count = 0
+
     def activate_shield(self, duration: float):
         """Activate the shield for the given duration."""
         self.shield_timer = duration
         self.shield_active = True
-    
+
     def activate_speed_boost(self, duration: float):
         """Activate the speed boost for the given duration."""
         self.speed_boost_timer = duration
         self.speed_boost_active = True
-    
+
+    def add_bomb(self):
+        """Add a bomb to player's inventory."""
+        if self.bomb_count < BOMB_MAX_COUNT:
+            self.bomb_count += 1
+
+    def drop_bomb(self):
+        """Drop a bomb that destroys asteroids in radius."""
+        if self.bomb_count > 0:
+            self.bomb_count -= 1
+            return True
+        return False
+
     def collides_with(self, other: "CircleShape") -> bool:
         """Triangle (player) vs Circle (asteroid/shot) collision."""
         tri = self.triangle()
         a, b, c = tri[0], tri[1], tri[2]
         center = other.position
         radius = other.radius
-        
+
         # If circle center is inside triangle, collision
         if _point_in_triangle(center, a, b, c):
             return True
-        
+
         # Check distance to each edge
         closest = _closest_point_on_segment(center, a, b)
         min_dist = center.distance_to(closest)
-        
+
         closest = _closest_point_on_segment(center, b, c)
         min_dist = min(min_dist, center.distance_to(closest))
-        
+
         closest = _closest_point_on_segment(center, c, a)
         min_dist = min(min_dist, center.distance_to(closest))
-        
+
         return min_dist <= radius

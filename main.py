@@ -1,7 +1,11 @@
 import sys
 import random
 import pygame
-from constants import SCREEN_WIDTH, SCREEN_HEIGHT, ASTEROID_MIN_RADIUS, SHIELD_SPAWN_CHANCE, SPEED_BOOST_SPAWN_CHANCE
+from constants import (
+    SCREEN_WIDTH, SCREEN_HEIGHT, ASTEROID_MIN_RADIUS, 
+    SHIELD_SPAWN_CHANCE, SPEED_BOOST_SPAWN_CHANCE, BOMB_SPAWN_CHANCE,
+    BOMB_EXPLOSION_RADIUS
+)
 from logger import log_state, log_event
 from player import Player
 from asteroid import Asteroid
@@ -10,7 +14,7 @@ from shot import Shot
 from laser import Laser
 from particle import Particle, spawn_explosion
 from background import Background
-from powerup import ShieldPowerUp, SpeedPowerUp
+from powerup import ShieldPowerUp, SpeedPowerUp, BombPowerUp
 
 def main():
     print(f"Starting Asteroids with pygame version: {pygame.version.ver}")
@@ -35,6 +39,7 @@ def main():
     Particle.containers = (updatable, drawable)
     ShieldPowerUp.containers = (powerups, updatable, drawable)
     SpeedPowerUp.containers = (powerups, updatable, drawable)
+    BombPowerUp.containers = (powerups, updatable, drawable)
     asteroid_field = AsteroidField()
     player = Player(x, y)
     background = Background()
@@ -56,6 +61,29 @@ def main():
                     player.cycle_weapon(-1)
                 elif event.key == pygame.K_e:
                     player.cycle_weapon(1)
+                elif event.key == pygame.K_LSHIFT or event.key == pygame.K_RSHIFT:
+                    if player.drop_bomb():
+                        log_event("bomb_dropped")
+                        # Destroy asteroids within blast radius
+                        destroyed_count = 0
+                        for asteroid in list(asteroids):
+                            if player.position.distance_to(asteroid.position) <= BOMB_EXPLOSION_RADIUS:
+                                if asteroid.radius == ASTEROID_MIN_RADIUS * 3:
+                                    score += 1
+                                    spawn_explosion(asteroid.position.x, asteroid.position.y, (255, 100, 50), 16)
+                                elif asteroid.radius == ASTEROID_MIN_RADIUS * 2:
+                                    score += 2
+                                    spawn_explosion(asteroid.position.x, asteroid.position.y, (255, 150, 50), 12)
+                                else:
+                                    score += 3
+                                    spawn_explosion(asteroid.position.x, asteroid.position.y, (255, 200, 100), 8)
+                                # Screen shake
+                                shake_timer = 0.1
+                                shake_intensity = 6  # Stronger shake for bomb
+                                asteroid.split()
+                                destroyed_count += 1
+                        if destroyed_count > 0:
+                            print(f"Bomb destroyed {destroyed_count} asteroids!")
 
         updatable.update(dt, asteroids)
         background.update(dt, player.velocity)
@@ -83,6 +111,9 @@ def main():
                     # Chance to spawn speed power-up
                     if random.random() < SPEED_BOOST_SPAWN_CHANCE:
                         SpeedPowerUp(thing.position.x, thing.position.y)
+                    # Chance to spawn bomb power-up
+                    if random.random() < BOMB_SPAWN_CHANCE:
+                        BombPowerUp(thing.position.x, thing.position.y)
                 elif player.invulnerable_timer <= 0:
                     log_event("player_hit")
                     lives -= 1
@@ -118,6 +149,9 @@ def main():
                     # Chance to spawn speed power-up
                     if random.random() < SPEED_BOOST_SPAWN_CHANCE:
                         SpeedPowerUp(asteroid.position.x, asteroid.position.y)
+                    # Chance to spawn bomb power-up
+                    if random.random() < BOMB_SPAWN_CHANCE:
+                        BombPowerUp(asteroid.position.x, asteroid.position.y)
 
         # Laser collision with asteroids
         for laser_obj in [obj for obj in updatable if isinstance(obj, Laser)]:
@@ -142,6 +176,9 @@ def main():
                 # Chance to spawn speed power-up
                 if random.random() < SPEED_BOOST_SPAWN_CHANCE:
                     SpeedPowerUp(hit_asteroid.position.x, hit_asteroid.position.y)
+                # Chance to spawn bomb power-up
+                if random.random() < BOMB_SPAWN_CHANCE:
+                    BombPowerUp(hit_asteroid.position.x, hit_asteroid.position.y)
 
         # Power-up collection
         for powerup in powerups:
@@ -174,6 +211,11 @@ def main():
         if player.speed_boost_active:
             speed_text = font.render(f"SPEED BOOST: {player.speed_boost_timer:.1f}s", True, (255, 200, 0))
             game_surface.blit(speed_text, (10, 130))
+        
+        # Bomb HUD
+        if player.bomb_count > 0:
+            bomb_text = font.render(f"BOMBS: {player.bomb_count}", True, (255, 50, 50))
+            game_surface.blit(bomb_text, (10, 170))
 
         # Screen shake offset
         shake_offset = pygame.Vector2(0, 0)

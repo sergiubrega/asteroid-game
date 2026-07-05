@@ -100,7 +100,16 @@ Current weapon shown in HUD (top-left).
 - While active: player acceleration is doubled, making movement much faster
 - Can be refreshed by collecting another speed boost before timer expires
 
-Current shield/speed status shown in HUD (top-left, below weapon).
+**Bomb Power-up** (red glowing pickup):
+- Spawns with 5% chance when asteroids are destroyed
+- Drifts downward with pulsing glow
+- Collect to gain **1 bomb** (max 3 carried)
+- Visual: bomb icon with fuse + HUD counter "BOMBS: X"
+- Press **Shift** to drop bomb — destroys all asteroids within 200px radius
+- Awards points for each destroyed asteroid + screen shake
+- Can stack up to 3 bombs
+
+Current shield/speed/bomb status shown in HUD (top-left, below weapon).
 
 ---
 
