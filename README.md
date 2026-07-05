@@ -82,6 +82,20 @@ Current weapon shown in HUD (top-left).
 
 ---
 
+## 🛡️ Power-ups
+
+**Shield Power-up** (cyan glowing pickup):
+- Spawns with 15% chance when asteroids are destroyed
+- Drifts downward with pulsing glow
+- Collect to gain **5 seconds of invincibility**
+- Visual: pulsing cyan ring around ship + HUD timer "SHIELD: X.Xs"
+- While active: asteroid collisions destroy the asteroid (with points + split) but **no damage/lives lost**
+- Can be refreshed by collecting another shield before timer expires
+
+Current shield status shown in HUD (top-left, below weapon).
+
+---
+
 ## 📊 Logging (built-in)
 
 Every run produces two JSONL files:
