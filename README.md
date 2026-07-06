@@ -164,11 +164,6 @@ Perfect for post-game analysis, replay visualisation, or training an RL agent.
 
 ## 🛠️ Extending Ideas
 
-- **Score / lives / levels** — `constants.py` already has the hooks
-- **Background starfield** — parallax layers in draw loop
-- **Lumpy asteroids** — per-vertex radius variation in `Asteroid.draw()`
-- **Sound** — `pygame.mixer` one-liners at event sites
-- **High-score file** — append to `logger.py`'s event sink
 - **AI bot** — replace `Player.update()` with a policy network; state log is your dataset
 
 ---
