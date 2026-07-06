@@ -21,22 +21,22 @@ uv run main.py
 
 **Controls**
 
-|| Key | Action ||
-||-----|--------||
-|| `W` | Thrust forward ||
-|| `S` | Thrust backward ||
-|| `A` | Rotate left ||
-|| `D` | Rotate right ||
-|| `SPACE` | Fire ||
-|| `Q` / `E` | Cycle weapon backward / forward ||
-|| `SHIFT` | Drop bomb (clear asteroids in radius)||
-|| `P` | Pause game ||
-|| `R` | Restart (when paused or game over)||
-|| `M` | Return to main menu (when game over)||
-|| `↑` / `↓` | Navigate menu (main menu)||
-|| `ENTER` / `SPACE` | Select menu option (main menu)||
-|| `✕` (window close) | Quit ||
-|| Any key (Game Over) | Exit game ||
+| Key | Action |
+|-----|--------|
+| `W` | Thrust forward |
+| `S` | Thrust backward |
+| `A` | Rotate left |
+| `D` | Rotate right |
+| `SPACE` | Fire |
+| `Q` / `E` | Cycle weapon backward / forward |
+| `SHIFT` | Drop bomb (clear asteroids in radius) |
+| `P` | Pause game |
+| `R` | Restart (when paused or game over) |
+| `M` | Return to main menu (when game over) |
+| `↑` / `↓` | Navigate menu (main menu) |
+| `ENTER` / `SPACE` | Select menu option (main menu) |
+| `✕` (window close) | Quit |
+| Any key (Game Over) | Exit game |
 
 ---
 
