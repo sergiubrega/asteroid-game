@@ -11,12 +11,12 @@ A faithful, no-nonsense clone of the 1979 arcade classic, built from scratch wit
 
 ## 🎮 Play
 
-```bash
+```
 # Install deps (uv recommended)
 uv sync
 
 # Launch
-python main.py
+uv run main.py
 ```
 
 **Controls**
