@@ -211,7 +211,9 @@ def main():
     pause_selection = 0
     # Game over selection
     game_over_selection = 0
-    
+    # Play time for difficulty scaling
+    play_time = 0.0
+
     while True:
         log_state()
         for event in pygame.event.get():
@@ -233,6 +235,7 @@ def main():
                             score = 0
                             lives = 3
                             game_state = GameState.PLAYING
+                            play_time = 0.0  # reset play time
                         elif menu_selection == 1:  # HIGH SCORES
                             # Just show high scores - we'll handle this in the menu drawing
                             pass
@@ -281,6 +284,7 @@ def main():
                         score = 0
                         lives = 3
                         game_state = GameState.PLAYING
+                        play_time = 0.0  # reset play time
                     elif event.key == pygame.K_q:
                         # Quit to menu
                         game_state = GameState.MENU
@@ -294,6 +298,7 @@ def main():
                         score = 0
                         lives = 3
                         game_state = GameState.PLAYING
+                        play_time = 0.0  # reset play time
                     elif event.key == pygame.K_m:
                         # Main menu
                         game_state = GameState.MENU
@@ -303,6 +308,17 @@ def main():
 
         # Game logic based on state
         if game_state == GameState.PLAYING:
+            # Update play time for difficulty scaling
+            play_time += dt
+            # Calculate difficulty: every 30 seconds of play time increases difficulty by 1
+            difficulty = 1 + int(play_time // 30)
+            # Update asteroid field parameters based on difficulty
+            # Spawn rate decreases (so faster spawns) as difficulty increases, but not below 0.5 seconds
+            asteroid_field.base_spawn_rate = max(0.5, 1.5 - 0.2 * difficulty)
+            # Speed range increases with difficulty
+            asteroid_field.base_speed_min = 40 + difficulty * 2
+            asteroid_field.base_speed_max = 100 + difficulty * 2
+
             updatable.update(dt, asteroids)
             background.update(dt, player.velocity)
             

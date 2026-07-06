@@ -29,11 +29,11 @@ Faithful Asteroids clone built with pygame as part of Boot.dev curriculum. Exten
 - [x] Bombs (area clear)
 - [x] High-score persistence (file-based)
 
-**Polish** — 3/4 complete ✓
+**Polish** — 4/4 complete ✓
 - [x] Sound effects (shoot, explode, thrust, power-up)
 - [x] Main menu / pause / game-over screens
 - [x] Game-over screen waits for key press
-- [ ] Difficulty scaling (faster spawns, more aggressive rocks over time)
+- [x] Difficulty scaling (faster spawns, more aggressive rocks over time)
 
 ## File Structure
 ```

@@ -24,4 +24,4 @@ From the Boot.dev "Build Asteroids" course — optional enhancements to make the
 - [x] Sound effects (shoot, explode, thrust, power-up)
 - [x] Main menu / pause / game-over screens
 - [x] Game-over screen waits for key press before exit
-- [ ] Difficulty scaling (faster spawns, more aggressive rocks over time)
+- [x] Difficulty scaling (faster spawns, more aggressive rocks over time)
